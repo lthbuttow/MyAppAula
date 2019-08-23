@@ -1,6 +1,9 @@
 package br.edu.ifsul.myapp.activity;
 
+import android.content.DialogInterface;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,7 +21,7 @@ import com.google.firebase.auth.FirebaseUser;
 
 import br.edu.ifsul.myapp.R;
 
-public class MainActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = "mainActivity";
     private EditText etEmail, etSenha;
@@ -29,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_login);
 
 //        ((EditText)findViewById(R.id.etEmail_login)).getText()
 
@@ -52,12 +55,12 @@ public class MainActivity extends AppCompatActivity {
                 if (!email.isEmpty() && !senha.isEmpty()){
                     signIn(email, senha);
                 } else {
-                    Toast.makeText(MainActivity.this, getString(R.string.toast_preencher_todos_os_campos), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, getString(R.string.toast_preencher_todos_os_campos), Toast.LENGTH_SHORT).show();
                 }
                 if (!email.isEmpty() && !senha.isEmpty()){
                     resetarSenha(email, senha);
                 } else {
-                    Toast.makeText(MainActivity.this, getString(R.string.toast_preencher_todos_os_campos), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, getString(R.string.toast_preencher_todos_os_campos), Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -77,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithEmail:failure", task.getException());
-                            Toast.makeText(MainActivity.this, "Falha na autenticação.",
+                            Toast.makeText(LoginActivity.this, "Falha na autenticação.",
                                     Toast.LENGTH_SHORT).show();
 //                            updateUI(null);
                         }
@@ -87,6 +90,32 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void resetarSenha(String email, String senha) {
+    private void resetarSenha(final String email) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        //add the title and text
+        builder.setTitle("Atenção");
+        builder.setMessage("Um email de recuperação de senha será enviado para: " + email);
+        //add the buttons
+        builder.setPositiveButton("Sim", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                mAuth.sendPasswordResetEmail(email)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                if (task.isSuccessful()) {
+                                    Log.d(TAG, "Email sent.");
+                                }
+                            }
+                        });
+            }});
+        builder.setNegativeButton("Não", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Snackbar.make(findViewById(R.id.R_id_container_activity_login), "Operação cancelada.", Snackbar.LENGTH_LONG).show();
+                }
+            });
+
+        builder.show();
     }
 }
